@@ -1,7 +1,7 @@
 <div align="center">
 <a href="https://github.com/matsuzaka-yuki/FolkPatch/releases/latest"><img src="logo.png" style="width: 128px;" alt="logo"></a>
 
-<h1 align="center">FolkPatch</h1>
+<h1 align="center">FolkPatch Manager</h1>
 
 [![Latest Release](https://img.shields.io/github/v/release/matsuzaka-yuki/FolkPatch?label=Release&logo=github)](https://github.com/matsuzaka-yuki/FolkPatch/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/FolkPatch)
