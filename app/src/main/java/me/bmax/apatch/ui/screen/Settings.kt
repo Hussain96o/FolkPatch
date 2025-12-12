@@ -1186,6 +1186,60 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     })
             }
 
+
+
+            // Module Category
+            SettingsCategory(icon = Icons.Filled.Extension, title = stringResource(R.string.settings_category_module)) {
+                if (aPatchReady) {
+                    SwitchItem(
+                        icon = Icons.Filled.Save,
+                        title = stringResource(id = R.string.settings_auto_backup_module),
+                        summary = stringResource(id = R.string.settings_auto_backup_module_summary) + "\n" + android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS).absolutePath + "/FolkPatch/ModuleBackups",
+                        checked = autoBackupModule
+                    ) {
+                        prefs.edit { putBoolean("auto_backup_module", it) }
+                        autoBackupModule = it
+                    }
+
+                    if (autoBackupModule) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            headlineContent = { Text(stringResource(id = R.string.settings_open_backup_dir)) },
+                            modifier = Modifier.clickable {
+                                val backupDir = java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "FolkPatch/ModuleBackups")
+                                if (!backupDir.exists()) backupDir.mkdirs()
+
+                                try {
+                                    val intent = Intent(android.app.DownloadManager.ACTION_VIEW_DOWNLOADS)
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    try {
+                                        val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", backupDir)
+                                        val intent = Intent(Intent.ACTION_VIEW)
+                                        intent.setDataAndType(uri, "resource/folder")
+                                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e2: Exception) {
+                                            val intent2 = Intent(Intent.ACTION_VIEW)
+                                            intent2.setDataAndType(uri, "*/*")
+                                            intent2.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            intent2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            context.startActivity(Intent.createChooser(intent2, context.getString(R.string.settings_open_backup_dir)))
+                                        }
+                                    } catch (e3: Exception) {
+                                        Toast.makeText(context, R.string.backup_dir_open_failed, Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            leadingContent = { Icon(Icons.Filled.Folder, null) }
+                        )
+                    }
+                }
+            }
+
             // Multimedia Category
             SettingsCategory(
                 title = stringResource(id = R.string.settings_category_multimedia),
@@ -1272,7 +1326,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     val duration by MusicManager.duration.collectAsState(initial = 0)
                     val isPlaying by MusicManager.isPlaying.collectAsState(initial = false)
 
-                    if (duration > 0) {
+                    if (MusicConfig.musicFilename != null) {
                         ListItem(
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             headlineContent = { Text(stringResource(id = R.string.settings_music_playback_control)) },
@@ -1283,7 +1337,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                         onValueChange = { 
                                             MusicManager.seekTo(it.toInt())
                                         },
-                                        valueRange = 0f..duration.toFloat(),
+                                        valueRange = 0f..duration.toFloat().coerceAtLeast(1f),
                                         colors = androidx.compose.material3.SliderDefaults.colors(
                                             thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
                                             activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
@@ -1336,58 +1390,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                     content = context.getString(R.string.settings_clear_music_confirm)
                                 )
                             }
-                        )
-                    }
-                }
-            }
-
-            // Module Category
-            SettingsCategory(icon = Icons.Filled.Extension, title = stringResource(R.string.settings_category_module)) {
-                if (aPatchReady) {
-                    SwitchItem(
-                        icon = Icons.Filled.Save,
-                        title = stringResource(id = R.string.settings_auto_backup_module),
-                        summary = stringResource(id = R.string.settings_auto_backup_module_summary) + "\n" + android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS).absolutePath + "/FolkPatch/ModuleBackups",
-                        checked = autoBackupModule
-                    ) {
-                        prefs.edit { putBoolean("auto_backup_module", it) }
-                        autoBackupModule = it
-                    }
-
-                    if (autoBackupModule) {
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(stringResource(id = R.string.settings_open_backup_dir)) },
-                            modifier = Modifier.clickable {
-                                val backupDir = java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "FolkPatch/ModuleBackups")
-                                if (!backupDir.exists()) backupDir.mkdirs()
-
-                                try {
-                                    val intent = Intent(android.app.DownloadManager.ACTION_VIEW_DOWNLOADS)
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    try {
-                                        val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", backupDir)
-                                        val intent = Intent(Intent.ACTION_VIEW)
-                                        intent.setDataAndType(uri, "resource/folder")
-                                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        try {
-                                            context.startActivity(intent)
-                                        } catch (e2: Exception) {
-                                            val intent2 = Intent(Intent.ACTION_VIEW)
-                                            intent2.setDataAndType(uri, "*/*")
-                                            intent2.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                            intent2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            context.startActivity(Intent.createChooser(intent2, context.getString(R.string.settings_open_backup_dir)))
-                                        }
-                                    } catch (e3: Exception) {
-                                        Toast.makeText(context, R.string.backup_dir_open_failed, Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            },
-                            leadingContent = { Icon(Icons.Filled.Folder, null) }
                         )
                     }
                 }
